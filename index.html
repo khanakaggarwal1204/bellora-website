@@ -31,6 +31,7 @@
         <a href="#story" class="nav__link" data-scroll>Our Story</a>
         <a href="#cuisine" class="nav__link" data-scroll>Cuisine</a>
         <a href="#gallery" class="nav__link" data-scroll>The Space</a>
+        <a href="#visit" class="nav__link" data-scroll>Visit Us</a>
       </nav>
 
       <a href="#hero" class="nav__brand" data-scroll aria-label="Bellora — home">
@@ -40,9 +41,11 @@
 
       <nav class="nav__links nav__links--right" aria-label="Secondary">
         <a href="#reserve" class="nav__link" data-scroll>Reservations</a>
-        <a href="#visit" class="nav__link" data-scroll>Visit Us</a>
+        <a href="tel:+917291045151" class="nav__contact" aria-label="Contact Bellora: call 072910 45151"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><span class="nav__contact-label">Contact</span><span class="nav__contact-num">072910 45151</span></a>
         <a href="#reserve" class="nav__cta" data-scroll>Reserve a Table</a>
       </nav>
+
+      <a href="tel:+917291045151" class="nav__call" aria-label="Call Bellora on 072910 45151"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><span>Contact</span></a>
 
       <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span>
@@ -59,6 +62,7 @@
       <a href="#gallery" class="menu__link" data-scroll><em>03</em>The Space</a>
       <a href="#reserve" class="menu__link" data-scroll><em>04</em>Reservations</a>
       <a href="#visit" class="menu__link" data-scroll><em>05</em>Visit Us</a>
+      <a href="tel:+917291045151" class="menu__link"><em>06</em>Contact · 072910 45151</a>
     </nav>
     <p class="menu__foot">Elegantly Vegetarian · New Delhi</p>
   </div>
@@ -322,6 +326,11 @@
             <label for="f-notes">Occasion <span class="field__opt">(optional)</span></label>
             <textarea id="f-notes" name="notes" rows="3" placeholder="Anniversary, birthday, dietary preferences…"></textarea>
           </div>
+          <div class="field--hp" aria-hidden="true">
+            <label for="f-website">Website</label>
+            <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <p class="reserve__error" id="reserveError" role="alert" hidden></p>
           <button type="submit" class="btn btn--gold btn--full"><span>Request Reservation</span></button>
           <p class="reserve__hint">Our concierge confirms every request personally within the hour.</p>
 
@@ -349,6 +358,10 @@
               <p>Block A, Plot No. 2, GT Karnal Road,<br />Gujranwala Town Part 1, Delhi 110009</p>
             </div>
             <div class="visit__row reveal">
+              <span class="visit__row-label">Contact</span>
+              <p><a href="tel:+917291045151" class="visit__tel">072910 45151</a></p>
+            </div>
+            <div class="visit__row reveal">
               <span class="visit__row-label">Lunch</span>
               <p>12:00 — 3:30 PM, all days</p>
             </div>
@@ -360,6 +373,24 @@
               <span class="visit__row-label">Dress</span>
               <p>Smart elegant</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="map reveal">
+          <iframe
+            class="map__frame"
+            title="Map showing Bellora, Block A, Plot No. 2, GT Karnal Road, Gujranwala Town Part 1, Delhi"
+            src="https://maps.google.com/maps?q=GT+Karnal+Road+Block+A+Plot+No+2+Gujranwala+Town+Part+1+Delhi+110009&amp;hl=en&amp;z=16&amp;output=embed"
+            loading="lazy"
+            allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div class="map__card">
+            <p class="map__card-label">Find Us</p>
+            <p class="map__card-addr">Block A, Plot No. 2, GT Karnal Road,<br />Gujranwala Town Part 1, Delhi 110009</p>
+            <a href="https://www.google.com/maps?client=safari&amp;rls=en&amp;oe=UTF-8&amp;um=1&amp;ie=UTF-8&amp;fb=1&amp;gl=in&amp;sa=X&amp;geocode=KbuhbdPWAw05Md_y_uoAU3gF&amp;daddr=Gt+karnal+road+BLOCK+-+A,+PLOT+NO.+2,+Gujranwala+Town+Part+1,+Gujranwala+Town,+Delhi,+110009" target="_blank" rel="noopener" class="btn btn--gold"><span>Get Directions</span></a>
+            <a href="tel:+917291045151" class="map__card-tel">Or call 072910 45151</a>
           </div>
         </div>
       </div>
@@ -387,7 +418,7 @@
         <p><a href="tel:+917291045151">072910 45151</a> · <a href="https://www.instagram.com/bellora.elegantly/" target="_blank" rel="noopener">@bellora.elegantly</a></p>
         <div class="footer__social">
           <a href="https://www.instagram.com/bellora.elegantly/" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
-          <a href="https://www.google.com/maps/search/?api=1&amp;query=Bellora+GT+Karnal+Road+Gujranwala+Town+Delhi+110009" target="_blank" rel="noopener" aria-label="Google Maps">Directions</a>
+          <a href="https://www.google.com/maps?client=safari&amp;rls=en&amp;oe=UTF-8&amp;um=1&amp;ie=UTF-8&amp;fb=1&amp;gl=in&amp;sa=X&amp;geocode=KbuhbdPWAw05Md_y_uoAU3gF&amp;daddr=Gt+karnal+road+BLOCK+-+A,+PLOT+NO.+2,+Gujranwala+Town+Part+1,+Gujranwala+Town,+Delhi,+110009" target="_blank" rel="noopener" aria-label="Google Maps">Directions</a>
         </div>
       </div>
     </div>

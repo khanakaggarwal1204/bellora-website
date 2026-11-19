@@ -139,17 +139,47 @@
   }
 
   if (form) {
-    form.addEventListener("submit", (e) => {
+    const errorBox = document.getElementById("reserveError");
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    const showError = (html) => { errorBox.innerHTML = html; errorBox.hidden = false; };
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      errorBox.hidden = true;
       if (!form.reportValidity()) return;
-      const name = (new FormData(form).get("name") || "").toString().trim().split(" ")[0] || "guest";
-      successName.textContent = name;
-      success.hidden = false;
-      success.style.opacity = "0";
-      requestAnimationFrame(() => {
-        success.style.transition = "opacity 0.8s cubic-bezier(0.22,1,0.36,1)";
-        success.style.opacity = "1";
-      });
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      const firstName = (data.name || "").toString().trim().split(" ")[0] || "guest";
+
+      submitBtn.disabled = true;
+      try {
+        const res = await fetch("/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const out = await res.json().catch(() => ({}));
+
+        if (!res.ok || !out.ok) {
+          const first = out.errors && Object.values(out.errors)[0];
+          showError(first || out.error || 'Something went wrong. Please call us on <a href="tel:+917291045151">072910 45151</a>.');
+          return;
+        }
+
+        successName.textContent = firstName;
+        success.hidden = false;
+        success.style.opacity = "0";
+        requestAnimationFrame(() => {
+          success.style.transition = "opacity 0.8s cubic-bezier(0.22,1,0.36,1)";
+          success.style.opacity = "1";
+        });
+        form.reset();
+      } catch (_) {
+        showError('We couldn’t reach the server. Please call us on <a href="tel:+917291045151">072910 45151</a>.');
+      } finally {
+        submitBtn.disabled = false;
+      }
     });
   }
 })();

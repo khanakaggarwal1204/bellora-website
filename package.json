@@ -1,0 +1,9 @@
+{
+  "name": "bellora-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bellora — Elegantly Vegetarian. Website + reservation backend.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
