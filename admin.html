@@ -4,110 +4,728 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Bellora — Reservations</title>
+<title>Bellora — Admin Dashboard</title>
 <link rel="icon" type="image/png" href="assets/favicon.png" />
 <style>
-  :root { --ivory:#F7F2E9; --cream:#EFE7D7; --gold:#A8895A; --espresso:#2B211A; --line:rgba(43,33,26,.14); }
-  * { box-sizing: border-box; }
+  :root {
+    --ivory:#F7F2E9; --cream:#EFE7D7; --paper:#FFFDF8; --gold:#A8895A; --gold-soft:#C8B28A;
+    --espresso:#2B211A; --muted:#7A6A5A; --line:rgba(43,33,26,.14); --red:#9B3B2F; --green:#2F7A4A; --amber:#A8661F;
+  }
+  * { box-sizing:border-box; }
   body { margin:0; font:14px/1.5 "Helvetica Neue",Arial,sans-serif; background:var(--ivory); color:var(--espresso); }
-  header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 28px; border-bottom:1px solid var(--line); background:var(--cream); }
-  h1 { margin:0; font:500 22px Georgia,serif; letter-spacing:.2em; text-transform:uppercase; }
-  main { padding:24px 28px; max-width:1200px; margin:auto; }
-  button, select { font:inherit; padding:8px 14px; border:1px solid var(--espresso); background:transparent; color:var(--espresso); cursor:pointer; }
+  button, select, input, textarea { font:inherit; }
+  button { padding:9px 14px; border:1px solid var(--espresso); background:transparent; color:var(--espresso); cursor:pointer; }
   button:hover { background:var(--espresso); color:var(--ivory); }
-  input { font:inherit; padding:10px 12px; border:1px solid var(--line); background:#fff; width:min(360px,100%); }
-  .login { max-width:420px; margin:12vh auto; text-align:center; display:grid; gap:14px; }
-  .bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center; }
-  .count { margin-left:auto; color:#7a6a5a; }
-  .wrap { overflow-x:auto; border:1px solid var(--line); background:#fff; }
-  table { width:100%; border-collapse:collapse; min-width:820px; }
-  th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); background:var(--cream); }
-  .pill { display:inline-block; padding:2px 10px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; border:1px solid currentColor; }
-  .new { color:#a8661f; } .confirmed { color:#2f7a4a; } .cancelled { color:#9b3b2f; }
-  .notes { color:#7a6a5a; max-width:260px; }
-  .err { color:#9b3b2f; min-height:1.4em; }
+  button:disabled { opacity:.55; cursor:wait; }
+  button.primary { background:var(--espresso); color:var(--ivory); }
+  button.primary:hover { background:#1d1712; }
+  button.small { padding:6px 10px; font-size:12px; }
+  input, select, textarea { padding:10px 12px; border:1px solid var(--line); background:#fff; color:var(--espresso); width:100%; }
+  input:focus, select:focus, textarea:focus { outline:2px solid rgba(168,137,90,.35); border-color:var(--gold); }
+  label { display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
   [hidden] { display:none !important; }
+
+  .login { max-width:430px; margin:12vh auto; padding:32px; text-align:center; background:var(--paper); border:1px solid var(--line); }
+  .login h1 { margin:0 0 6px; font:500 28px Georgia,serif; letter-spacing:.22em; text-transform:uppercase; }
+  .login p { color:var(--muted); }
+  .login .stack { display:grid; gap:14px; margin-top:22px; text-align:left; }
+  .err { color:var(--red); min-height:1.4em; }
+
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 28px; border-bottom:1px solid var(--line); background:var(--cream); }
+  .brand h1 { margin:0; font:500 24px Georgia,serif; letter-spacing:.2em; text-transform:uppercase; }
+  .brand p { margin:4px 0 0; color:var(--muted); font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+  .top-actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .tabs { display:flex; gap:0; padding:0 28px; border-bottom:1px solid var(--line); background:var(--ivory); overflow-x:auto; }
+  .tab { border:0; border-bottom:2px solid transparent; background:transparent; padding:14px 18px; letter-spacing:.12em; text-transform:uppercase; font-size:12px; color:var(--muted); white-space:nowrap; }
+  .tab:hover { color:var(--espresso); background:transparent; }
+  .tab.is-active { color:var(--espresso); border-bottom-color:var(--gold); }
+  main { padding:26px 28px 48px; max-width:1440px; margin:auto; }
+  .view { display:grid; gap:22px; }
+  .section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .eyebrow { margin:0 0 4px; color:var(--gold); font-size:11px; letter-spacing:.2em; text-transform:uppercase; }
+  h2 { margin:0; font:500 26px Georgia,serif; }
+  h3 { margin:0; font:500 18px Georgia,serif; }
+  .panel { background:var(--paper); border:1px solid var(--line); padding:20px; }
+  .panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+  .panel-head p { margin:4px 0 0; color:var(--muted); font-size:12px; }
+  .linkbtn { border:0; padding:0; color:var(--gold); text-decoration:underline; background:transparent; font-size:12px; }
+  .linkbtn:hover { color:var(--espresso); background:transparent; }
+
+  .stat-grid { display:grid; grid-template-columns:repeat(5,minmax(150px,1fr)); gap:14px; }
+  .stat-card { background:var(--paper); border:1px solid var(--line); padding:18px; border-top:3px solid var(--gold-soft); }
+  .stat-card span { display:block; color:var(--muted); font-size:11px; letter-spacing:.14em; text-transform:uppercase; }
+  .stat-card strong { display:block; margin:8px 0 4px; font:500 34px Georgia,serif; }
+  .stat-card small { color:var(--muted); }
+  .tone-red { border-top-color:var(--red); }
+  .tone-green { border-top-color:var(--green); }
+  .tone-amber { border-top-color:var(--amber); }
+  .tone-gold { border-top-color:var(--gold); }
+  .tone-muted { border-top-color:#b8aa99; }
+
+  .period-grid { display:grid; grid-template-columns:repeat(3,minmax(220px,1fr)); gap:14px; }
+  .period-card { background:var(--paper); border:1px solid var(--line); padding:18px; }
+  .period-card .label { color:var(--muted); font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
+  .period-card .value { font:500 34px Georgia,serif; margin:6px 0 10px; }
+  .period-card .breakdown { color:var(--muted); font-size:12px; }
+  .period-card .breakdown strong { color:var(--espresso); }
+
+  .trend-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  .span-2 { grid-column:span 2; }
+  .bars { display:flex; align-items:flex-end; gap:6px; height:190px; padding-top:12px; }
+  .bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; min-width:0; }
+  .bar { width:100%; max-width:34px; background:linear-gradient(180deg,var(--gold-soft),var(--gold)); min-height:3px; }
+  .bar-labels { display:flex; gap:6px; margin-top:8px; }
+  .bar-labels span { flex:1; text-align:center; font-size:9px; color:var(--muted); white-space:nowrap; overflow:hidden; }
+  .mini-table { width:100%; border-collapse:collapse; }
+  .mini-table th, .mini-table td { padding:9px 8px; border-bottom:1px solid var(--line); text-align:right; font-size:12px; white-space:nowrap; }
+  .mini-table th:first-child, .mini-table td:first-child { text-align:left; }
+  .mini-table th { color:var(--gold); font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+  .mini-table tr:last-child td { border-bottom:0; }
+  .two-col { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+  .record-list { display:grid; gap:10px; }
+  .record { display:flex; justify-content:space-between; gap:14px; padding:12px; border:1px solid var(--line); background:#fff; }
+  .record-main strong { display:block; }
+  .record-main span { color:var(--muted); font-size:12px; }
+  .record-side { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .empty { padding:24px; text-align:center; color:var(--muted); border:1px dashed var(--line); }
+
+  .pill { display:inline-block; padding:3px 10px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; border:1px solid currentColor; white-space:nowrap; }
+  .status-new { color:var(--amber); }
+  .status-confirmed { color:var(--green); }
+  .status-cancelled { color:var(--red); }
+  .status-rejected { color:#6d4c9f; }
+  .source { color:var(--muted); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+
+  .toolbar { display:grid; grid-template-columns:minmax(220px,1.5fr) repeat(4,minmax(130px,.7fr)) auto; gap:10px; align-items:end; }
+  .toolbar .wide { grid-column:span 2; }
+  .toolbar label { margin-bottom:5px; }
+  .table-wrap { overflow:auto; border:1px solid var(--line); background:#fff; }
+  table { width:100%; border-collapse:collapse; min-width:1120px; }
+  th, td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th { background:var(--cream); color:var(--gold); font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
+  td { font-size:13px; }
+  .guest-name strong { display:block; }
+  .guest-name span { color:var(--muted); font-size:12px; }
+  .notes-cell { max-width:240px; color:var(--muted); }
+  .actions { display:flex; flex-wrap:wrap; gap:6px; min-width:190px; }
+  .pager { display:flex; align-items:center; justify-content:flex-end; gap:12px; color:var(--muted); }
+
+  .modal-backdrop { position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(43,33,26,.45); }
+  .modal { width:min(720px,100%); max-height:90vh; overflow:auto; background:var(--paper); border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,.18); }
+  .modal-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--line); }
+  .modal-head h2 { font-size:22px; }
+  .icon-btn { border:0; padding:4px 10px; font-size:24px; line-height:1; }
+  .modal-form { display:grid; gap:16px; padding:24px; }
+  .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  .form-grid .full { grid-column:1/-1; }
+  .modal-actions { display:flex; justify-content:flex-end; gap:10px; grid-column:1/-1; }
+  .form-error { color:var(--red); min-height:1.4em; }
+  #toast { position:fixed; right:20px; bottom:20px; z-index:60; display:grid; gap:8px; }
+  .toast { max-width:360px; padding:12px 16px; background:var(--espresso); color:var(--ivory); box-shadow:0 10px 30px rgba(0,0,0,.2); }
+  .toast.error { background:var(--red); }
+
+  @media (max-width:1100px) {
+    .stat-grid { grid-template-columns:repeat(3,1fr); }
+    .period-grid, .trend-grid, .two-col { grid-template-columns:1fr; }
+    .span-2 { grid-column:auto; }
+    .toolbar { grid-template-columns:1fr 1fr; }
+    .toolbar .wide { grid-column:span 2; }
+  }
+  @media (max-width:720px) {
+    .topbar, main, .tabs { padding-left:16px; padding-right:16px; }
+    .stat-grid, .period-grid, .form-grid { grid-template-columns:1fr; }
+    .toolbar { grid-template-columns:1fr; }
+    .toolbar .wide { grid-column:auto; }
+    .record { flex-direction:column; }
+    .record-side { align-items:flex-start; }
+  }
 </style>
 </head>
 <body>
 <div id="login" class="login">
   <h1>Bellora</h1>
-  <p>Enter the admin token to view reservation requests.</p>
-  <input id="token" type="password" placeholder="Admin token" autocomplete="current-password" />
-  <button id="go">View reservations</button>
-  <p class="err" id="loginErr"></p>
+  <p>Enter the admin token to manage reservations.</p>
+  <div class="stack">
+    <input id="token" type="password" placeholder="Admin token" autocomplete="current-password" />
+    <button id="go" class="primary">Open dashboard</button>
+    <p class="err" id="loginErr"></p>
+  </div>
 </div>
 
 <div id="app" hidden>
-  <header><h1>Reservations</h1><button id="logout">Sign out</button></header>
-  <main>
-    <div class="bar">
-      <select id="filter">
-        <option value="">All</option><option value="new">New</option>
-        <option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option>
-      </select>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Admin Dashboard</h1>
+      <p>Reservations management panel</p>
+    </div>
+    <div class="top-actions">
       <button id="refresh">Refresh</button>
-      <span class="count" id="count"></span>
+      <button id="logout">Sign out</button>
     </div>
-    <div class="wrap">
-      <table>
-        <thead><tr><th>Date</th><th>Time</th><th>Guests</th><th>Guest</th><th>Phone</th><th>Notes</th><th>Status</th><th>Received</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Admin sections">
+    <button class="tab is-active" data-view="overview">Overview</button>
+    <button class="tab" data-view="reservations">Reservations</button>
+  </nav>
+
+  <main>
+    <section id="view-overview" class="view">
+      <div class="section-head">
+        <div><p class="eyebrow">Snapshot</p><h2>Dashboard overview</h2></div>
+        <span id="updatedAt" class="source"></span>
+      </div>
+      <div id="totalCards" class="stat-grid"></div>
+
+      <div>
+        <p class="eyebrow">Performance</p>
+        <h2>Reservation statistics</h2>
+      </div>
+      <div id="periodCards" class="period-grid"></div>
+
+      <div class="trend-grid">
+        <article class="panel span-2">
+          <div class="panel-head"><div><h3>Last 14 days</h3><p>Bookings by reservation date</p></div></div>
+          <div id="dailyChart" class="bars"></div>
+          <div id="dailyLabels" class="bar-labels"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><div><h3>Last 8 weeks</h3><p>Monday-start weeks</p></div></div>
+          <div class="table-wrap"><table class="mini-table">
+            <thead><tr><th>Week</th><th>Bookings</th><th>Guests</th></tr></thead>
+            <tbody id="weeklyRows"></tbody>
+          </table></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><div><h3>Last 12 months</h3><p>By reservation month</p></div></div>
+          <div class="table-wrap"><table class="mini-table">
+            <thead><tr><th>Month</th><th>Bookings</th><th>Guests</th></tr></thead>
+            <tbody id="monthlyRows"></tbody>
+          </table></div>
+        </article>
+      </div>
+
+      <div class="two-col">
+        <article class="panel">
+          <div class="panel-head">
+            <div><h3>Recent enquiries</h3><p>Latest reservation requests received</p></div>
+            <button class="linkbtn" data-goto="reservations">View all</button>
+          </div>
+          <div id="recentList" class="record-list"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head">
+            <div><h3>Upcoming reservations</h3><p>Active bookings from today onwards</p></div>
+            <button class="linkbtn" data-goto="reservations">View all</button>
+          </div>
+          <div id="upcomingList" class="record-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-reservations" class="view" hidden>
+      <div class="section-head">
+        <div><p class="eyebrow">Management</p><h2>Reservation records</h2></div>
+        <div class="top-actions">
+          <button id="exportCsv">Export CSV</button>
+          <button id="exportXlsx">Export Excel</button>
+          <button id="addManual" class="primary">Add manual reservation</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="wide"><label for="search">Search</label><input id="search" type="search" placeholder="Customer name, phone or notes" /></div>
+        <div><label for="statusFilter">Status</label>
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+            <option value="new">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div><label for="guestFilter">Guests</label><select id="guestFilter"><option value="">Any guests</option></select></div>
+        <div><label for="periodFilter">Period</label>
+          <select id="periodFilter">
+            <option value="all">All dates</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="past">Past</option>
+          </select>
+        </div>
+        <div><label for="fromDate">From</label><input id="fromDate" type="date" /></div>
+        <div><label for="toDate">To</label><input id="toDate" type="date" /></div>
+        <div><button id="clearFilters" type="button">Clear</button></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Booking</th><th>Guest</th><th>Phone</th><th>Party</th><th>Notes</th><th>Status</th><th>Source</th><th>Received</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button id="prevPage" class="small" type="button">Previous</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage" class="small" type="button">Next</button>
+      </div>
+    </section>
   </main>
 </div>
 
+<div class="modal-backdrop" id="manualModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="manualTitle">
+    <div class="modal-head"><h2 id="manualTitle">Add manual reservation</h2><button class="icon-btn" type="button" data-close="manualModal" aria-label="Close">×</button></div>
+    <form id="manualForm" class="modal-form">
+      <div class="form-grid">
+        <div><label for="manualName">Full name</label><input id="manualName" name="name" required autocomplete="off" /></div>
+        <div><label for="manualPhone">Phone</label><input id="manualPhone" name="phone" type="tel" required autocomplete="off" /></div>
+        <div><label for="manualDate">Reservation date</label><input id="manualDate" name="date" type="date" required /></div>
+        <div><label for="manualTime">Time</label><select id="manualTime" name="time" required></select></div>
+        <div><label for="manualGuests">Number of guests</label><input id="manualGuests" name="guestCount" type="number" min="1" max="50" value="2" required /></div>
+        <div><label for="manualStatus">Status</label>
+          <select id="manualStatus" name="status">
+            <option value="confirmed" selected>Confirmed</option>
+            <option value="new">Pending</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="full"><label for="manualNotes">Notes <span style="text-transform:none">(optional)</span></label><textarea id="manualNotes" name="notes" rows="3"></textarea></div>
+      </div>
+      <p class="form-error" id="manualError"></p>
+      <div class="modal-actions">
+        <button type="button" data-close="manualModal">Cancel</button>
+        <button type="submit" class="primary">Save reservation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="editModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <div class="modal-head"><h2 id="editTitle">Edit reservation</h2><button class="icon-btn" type="button" data-close="editModal" aria-label="Close">×</button></div>
+    <form id="editForm" class="modal-form">
+      <input type="hidden" id="editId" />
+      <div class="form-grid">
+        <div><label for="editName">Full name</label><input id="editName" name="name" required autocomplete="off" /></div>
+        <div><label for="editPhone">Phone</label><input id="editPhone" name="phone" type="tel" required autocomplete="off" /></div>
+        <div><label for="editDate">Reservation date</label><input id="editDate" name="date" type="date" required /></div>
+        <div><label for="editTime">Time</label><select id="editTime" name="time" required></select></div>
+        <div><label for="editGuests">Number of guests</label><input id="editGuests" name="guestCount" type="number" min="1" max="50" required /></div>
+        <div><label for="editStatus">Status</label>
+          <select id="editStatus" name="status">
+            <option value="new">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="full"><label for="editNotes">Notes <span style="text-transform:none">(optional)</span></label><textarea id="editNotes" name="notes" rows="3"></textarea></div>
+      </div>
+      <p class="form-error" id="editError"></p>
+      <div class="modal-actions">
+        <button type="button" data-close="editModal">Cancel</button>
+        <button type="submit" class="primary">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" aria-live="polite"></div>
+
 <script>
 (function () {
+  "use strict";
+
   const $ = (id) => document.getElementById(id);
+  const TIMES = ["12:30 PM", "1:30 PM", "2:30 PM", "7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM"];
+  const STATUSES = ["new", "confirmed", "cancelled", "rejected"];
+  const PAGE_SIZE = 20;
   let token = sessionStorage.getItem("bellora_admin") || "";
-  let all = [];
+  let overview = null;
+  let reservations = [];
+  let page = 1;
+  let activeView = "overview";
+  const filters = { search: "", status: "", guestCount: "", period: "all", from: "", to: "" };
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-  const api = (url, opts = {}) => fetch(url, { ...opts, headers: { ...(opts.headers||{}), Authorization: "Bearer " + token, "Content-Type": "application/json" } });
-
-  async function load() {
-    const res = await api("/api/reservations");
-    if (res.status === 401) { sessionStorage.removeItem("bellora_admin"); show(false); $("loginErr").textContent = "Wrong token (or ADMIN_TOKEN not set on the server)."; return; }
-    const out = await res.json();
-    all = out.reservations || [];
-    show(true); render();
-  }
-
-  function render() {
-    const f = $("filter").value;
-    const list = f ? all.filter((r) => r.status === f) : all;
-    $("count").textContent = list.length + " request" + (list.length === 1 ? "" : "s");
-    $("rows").innerHTML = list.map((r) => `
-      <tr>
-        <td>${esc(r.date)}</td><td>${esc(r.time)}</td><td>${esc(r.guests)}</td>
-        <td>${esc(r.name)}</td>
-        <td><a href="tel:${esc(r.phone.replace(/[^\d+]/g,""))}">${esc(r.phone)}</a></td>
-        <td class="notes">${esc(r.notes)}</td>
-        <td><span class="pill ${esc(r.status)}">${esc(r.status)}</span><br />
-          <select data-id="${esc(r.id)}">
-            ${["new","confirmed","cancelled"].map((s) => `<option value="${s}" ${s===r.status?"selected":""}>${s}</option>`).join("")}
-          </select></td>
-        <td>${esc(new Date(r.createdAt).toLocaleString())}</td>
-      </tr>`).join("") || '<tr><td colspan="8">No reservations yet.</td></tr>';
-  }
-
-  function show(authed) { $("login").hidden = authed; $("app").hidden = !authed; }
-
-  $("go").onclick = () => { token = $("token").value.trim(); if (!token) return; sessionStorage.setItem("bellora_admin", token); $("loginErr").textContent = ""; load(); };
-  $("token").addEventListener("keydown", (e) => { if (e.key === "Enter") $("go").click(); });
-  $("logout").onclick = () => { sessionStorage.removeItem("bellora_admin"); token = ""; show(false); };
-  $("refresh").onclick = load;
-  $("filter").onchange = render;
-  $("rows").addEventListener("change", async (e) => {
-    const sel = e.target.closest("select[data-id]"); if (!sel) return;
-    await api("/api/reservations/" + sel.dataset.id, { method: "PATCH", body: JSON.stringify({ status: sel.value }) });
-    load();
+  const api = (url, opts = {}) => fetch(url, {
+    ...opts,
+    headers: { ...(opts.headers || {}), Authorization: "Bearer " + token, ...(opts.body ? { "Content-Type": "application/json" } : {}) },
   });
+  const pad = (n) => String(n).padStart(2, "0");
+  const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const guestCountOf = (r) => {
+    const direct = Number(r.guestCount);
+    if (Number.isInteger(direct) && direct > 0) return direct;
+    const match = String(r.guests || "").match(/\d+/);
+    return match ? Number(match[0]) : 0;
+  };
+  const timeToMinutes = (value) => {
+    const m = String(value || "").match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return 9999;
+    let hour = Number(m[1]) % 12;
+    if (m[3].toUpperCase() === "PM") hour += 12;
+    return hour * 60 + Number(m[2]);
+  };
+  const statusLabel = (status) => status === "new" ? "Pending" : status.charAt(0).toUpperCase() + status.slice(1);
+  const sourceLabel = (source) => source === "manual" ? "Manual" : "Website";
+  const formatDay = (key) => {
+    const [y, m, d] = String(key || "").split("-").map(Number);
+    if (!y || !m || !d) return esc(key || "—");
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  };
+  const formatDateTime = (value) => {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  };
+  const pill = (status) => `<span class="pill status-${esc(status)}">${esc(statusLabel(status))}</span>`;
+  const reservationAsc = (a, b) => String(a.date).localeCompare(String(b.date)) || timeToMinutes(a.time) - timeToMinutes(b.time) || String(a.createdAt || "").localeCompare(String(b.createdAt || ""));
+  const createdDesc = (a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")) || String(b.id).localeCompare(String(a.id));
 
-  if (token) load();
+  function toast(message, type = "ok") {
+    const item = document.createElement("div");
+    item.className = "toast" + (type === "error" ? " error" : "");
+    item.textContent = message;
+    $("toast").appendChild(item);
+    setTimeout(() => item.remove(), 4200);
+  }
+
+  function unauthorized() {
+    sessionStorage.removeItem("bellora_admin");
+    token = "";
+    overview = null;
+    reservations = [];
+    show(false);
+    $("loginErr").textContent = "Session expired or access denied.";
+  }
+
+  async function request(url, opts = {}) {
+    const res = await api(url, opts);
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) { unauthorized(); throw new Error("Unauthorized"); }
+    return { res, data };
+  }
+
+  async function loadDashboard() {
+    const { data } = await request("/api/admin/overview");
+    if (!data.ok) throw new Error(data.error || "Could not load overview");
+    overview = data.overview;
+    renderOverview();
+  }
+
+  async function loadReservations() {
+    const { data } = await request("/api/admin/reservations");
+    if (!data.ok) throw new Error(data.error || "Could not load reservations");
+    reservations = data.reservations || [];
+    renderGuestFilter();
+    renderReservations();
+  }
+
+  async function loadAll() {
+    await Promise.all([loadDashboard(), loadReservations()]);
+    show(true);
+  }
+
+  function show(authed) {
+    $("login").hidden = authed;
+    $("app").hidden = !authed;
+  }
+
+  function setView(view) {
+    activeView = view;
+    document.querySelectorAll(".tab").forEach((btn) => btn.classList.toggle("is-active", btn.dataset.view === view));
+    $("view-overview").hidden = view !== "overview";
+    $("view-reservations").hidden = view !== "reservations";
+  }
+
+  function renderOverview() {
+    if (!overview) return;
+    const t = overview.totals || {};
+    $("updatedAt").textContent = "Updated " + formatDateTime(overview.generatedAt);
+    $("totalCards").innerHTML = [
+      ["Total reservations", t.total || 0, "All records", "tone-gold"],
+      ["Pending requests", t.pending || 0, "Awaiting review", "tone-amber"],
+      ["Confirmed bookings", t.confirmed || 0, "Active confirmations", "tone-green"],
+      ["Cancellations", t.cancelled || 0, "Cancelled records", "tone-red"],
+      ["Rejected", t.rejected || 0, "Declined requests", "tone-muted"],
+    ].map(([label, value, sub, tone]) => `<div class="stat-card ${tone}"><span>${label}</span><strong>${value}</strong><small>${sub}</small></div>`).join("");
+
+    const periodMeta = [
+      ["today", "Today"],
+      ["week", "This week"],
+      ["month", "This month"],
+    ];
+    $("periodCards").innerHTML = periodMeta.map(([key, label]) => {
+      const p = overview.periods?.[key] || {};
+      return `<div class="period-card">
+        <div class="label">${label}</div>
+        <div class="value">${p.total || 0}</div>
+        <div class="breakdown"><strong>${p.pending || 0}</strong> pending · <strong>${p.confirmed || 0}</strong> confirmed · <strong>${p.cancelled || 0}</strong> cancelled · <strong>${p.rejected || 0}</strong> rejected<br />${p.guests || 0} guests</div>
+      </div>`;
+    }).join("");
+
+    const daily = overview.daily || [];
+    const maxDaily = Math.max(1, ...daily.map((d) => d.total || 0));
+    $("dailyChart").innerHTML = daily.map((d) => `<div class="bar-wrap" title="${esc(d.date)}: ${d.total || 0} bookings"><div class="bar" style="height:${Math.max(3, ((d.total || 0) / maxDaily) * 100)}%"></div></div>`).join("");
+    $("dailyLabels").innerHTML = daily.map((d) => `<span>${formatDay(d.date)}</span>`).join("");
+
+    $("weeklyRows").innerHTML = (overview.weekly || []).map((w) => `<tr><td>${formatDay(w.from)} – ${formatDay(w.to)}</td><td>${w.total || 0}</td><td>${w.guests || 0}</td></tr>`).join("") || `<tr><td colspan="3">No data</td></tr>`;
+    $("monthlyRows").innerHTML = (overview.monthly || []).map((m) => `<tr><td>${esc(m.month)}</td><td>${m.total || 0}</td><td>${m.guests || 0}</td></tr>`).join("") || `<tr><td colspan="3">No data</td></tr>`;
+    $("recentList").innerHTML = recordList(overview.recentEnquiries || [], "No enquiries yet.");
+    $("upcomingList").innerHTML = recordList(overview.upcomingReservations || [], "No upcoming reservations.");
+  }
+
+  function recordList(records, emptyText) {
+    if (!records.length) return `<div class="empty">${emptyText}</div>`;
+    return records.map((r) => `<div class="record">
+      <div class="record-main">
+        <strong>${esc(r.name)}</strong>
+        <span>${formatDay(r.date)} · ${esc(r.time)} · ${guestCountOf(r)} guests</span>
+      </div>
+      <div class="record-side">
+        ${pill(r.status)}
+        <a href="tel:${esc(String(r.phone || "").replace(/[^\d+]/g, ""))}">${esc(r.phone)}</a>
+        <span class="source">${esc(sourceLabel(r.source))} · ${formatDateTime(r.createdAt)}</span>
+      </div>
+    </div>`).join("");
+  }
+
+  function renderGuestFilter() {
+    const counts = [...new Set(reservations.map(guestCountOf).filter(Boolean))].sort((a, b) => a - b);
+    const previous = filters.guestCount;
+    $("guestFilter").innerHTML = `<option value="">Any guests</option>` + counts.map((n) => `<option value="${n}" ${String(n) === previous ? "selected" : ""}>${n} guest${n === 1 ? "" : "s"}</option>`).join("");
+    if (![...counts.map(String), ""].includes(previous)) filters.guestCount = "";
+    $("guestFilter").value = filters.guestCount;
+  }
+
+  function filteredReservations() {
+    const today = todayKey();
+    const search = filters.search.trim().toLowerCase();
+    let list = reservations.slice();
+    if (filters.status) list = list.filter((r) => r.status === filters.status);
+    if (filters.guestCount) list = list.filter((r) => String(guestCountOf(r)) === filters.guestCount);
+    if (filters.period === "upcoming") list = list.filter((r) => r.date >= today);
+    if (filters.period === "past") list = list.filter((r) => r.date < today);
+    if (filters.from) list = list.filter((r) => r.date >= filters.from);
+    if (filters.to) list = list.filter((r) => r.date <= filters.to);
+    if (search) {
+      list = list.filter((r) =>
+        String(r.name || "").toLowerCase().includes(search) ||
+        String(r.phone || "").toLowerCase().includes(search) ||
+        String(r.notes || "").toLowerCase().includes(search) ||
+        String(r.id || "").toLowerCase().includes(search)
+      );
+    }
+    list.sort(filters.period === "upcoming" ? reservationAsc : createdDesc);
+    return list;
+  }
+
+  function renderReservations() {
+    const list = filteredReservations();
+    const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if (page > pages) page = pages;
+    const start = (page - 1) * PAGE_SIZE;
+    const visible = list.slice(start, start + PAGE_SIZE);
+    $("pageInfo").textContent = list.length ? `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, list.length)} of ${list.length}` : "No records";
+    $("prevPage").disabled = page <= 1;
+    $("nextPage").disabled = page >= pages;
+
+    $("rows").innerHTML = visible.map((r) => `<tr>
+      <td><strong>${formatDay(r.date)}</strong><br /><span class="source">${esc(r.time)}</span></td>
+      <td class="guest-name"><strong>${esc(r.name)}</strong><span>${esc(r.guests || `${guestCountOf(r)} guests`)}</span></td>
+      <td><a href="tel:${esc(String(r.phone || "").replace(/[^\d+]/g, ""))}">${esc(r.phone)}</a></td>
+      <td>${guestCountOf(r) || "—"}</td>
+      <td class="notes-cell">${esc(r.notes || "—")}</td>
+      <td>${pill(r.status)}</td>
+      <td><span class="source">${esc(sourceLabel(r.source))}</span></td>
+      <td>${formatDateTime(r.createdAt)}</td>
+      <td><div class="actions">
+        ${r.status !== "confirmed" ? `<button class="small" type="button" data-action="confirm" data-id="${esc(r.id)}">Confirm</button>` : ""}
+        ${r.status !== "rejected" ? `<button class="small" type="button" data-action="reject" data-id="${esc(r.id)}">Reject</button>` : ""}
+        ${r.status !== "cancelled" ? `<button class="small" type="button" data-action="cancel" data-id="${esc(r.id)}">Cancel</button>` : ""}
+        <button class="small" type="button" data-action="edit" data-id="${esc(r.id)}">Edit</button>
+      </div></td>
+    </tr>`).join("") || `<tr><td colspan="9"><div class="empty">No reservations match these filters.</div></td></tr>`;
+  }
+
+  function queryParams() {
+    const params = new URLSearchParams();
+    if (filters.status) params.set("status", filters.status);
+    if (filters.guestCount) params.set("guestCount", filters.guestCount);
+    if (filters.period !== "all") params.set("period", filters.period);
+    if (filters.from) params.set("from", filters.from);
+    if (filters.to) params.set("to", filters.to);
+    if (filters.search.trim()) params.set("search", filters.search.trim());
+    params.set("sort", filters.period === "upcoming" ? "date-asc" : "newest");
+    return params;
+  }
+
+  async function downloadExport(format) {
+    const params = queryParams();
+    params.set("format", format);
+    const res = await api(`/api/admin/reservations/export?${params.toString()}`);
+    if (res.status === 401) { unauthorized(); return; }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast(data.error || "Export failed", "error");
+      return;
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get("content-disposition") || "";
+    const match = disposition.match(/filename="?([^";]+)"?/);
+    const filename = match ? match[1] : `bellora-reservations.${format}`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast(`${format === "xlsx" ? "Excel" : "CSV"} export downloaded`);
+  }
+
+  async function setReservationStatus(id, status) {
+    if ((status === "cancelled" || status === "rejected") && !window.confirm(`Mark this reservation as ${statusLabel(status).toLowerCase()}?`)) return;
+    const { res, data } = await request(`/api/reservations/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok || !data.ok) { toast(data.error || "Update failed", "error"); return; }
+    toast(`Reservation ${statusLabel(status).toLowerCase()}`);
+    await loadAll();
+  }
+
+  function openModal(id) {
+    $(id).hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closeModal(id) {
+    $(id).hidden = true;
+    document.body.style.overflow = "";
+  }
+  function closeAllModals() {
+    ["manualModal", "editModal"].forEach(closeModal);
+  }
+
+  function fillTimeSelect(select) {
+    select.innerHTML = `<option value="" disabled selected>Select a time</option>` + TIMES.map((t) => `<option>${esc(t)}</option>`).join("");
+  }
+
+  function openEdit(id) {
+    const r = reservations.find((item) => item.id === id);
+    if (!r) return;
+    $("editId").value = r.id;
+    $("editName").value = r.name || "";
+    $("editPhone").value = r.phone || "";
+    $("editDate").value = r.date || "";
+    $("editTime").value = r.time || "";
+    $("editGuests").value = guestCountOf(r) || 2;
+    $("editStatus").value = STATUSES.includes(r.status) ? r.status : "new";
+    $("editNotes").value = r.notes || "";
+    $("editError").textContent = "";
+    openModal("editModal");
+  }
+
+  function payloadFromForm(prefix) {
+    return {
+      name: $(prefix + "Name").value,
+      phone: $(prefix + "Phone").value,
+      date: $(prefix + "Date").value,
+      time: $(prefix + "Time").value,
+      guestCount: Number($(prefix + "Guests").value),
+      notes: $(prefix + "Notes").value,
+      status: $(prefix + "Status").value,
+    };
+  }
+
+  function showFormErrors(prefix, errors) {
+    const target = $(prefix + "Error");
+    if (!errors || !Object.keys(errors).length) { target.textContent = ""; return; }
+    target.textContent = Object.values(errors).join(" ");
+  }
+
+  function bindEvents() {
+    $("go").onclick = async () => {
+      token = $("token").value.trim();
+      if (!token) return;
+      sessionStorage.setItem("bellora_admin", token);
+      $("loginErr").textContent = "";
+      try { await loadAll(); } catch (e) { if (e.message !== "Unauthorized") $("loginErr").textContent = e.message || "Could not sign in."; }
+    };
+    $("token").addEventListener("keydown", (e) => { if (e.key === "Enter") $("go").click(); });
+    $("logout").onclick = () => { sessionStorage.removeItem("bellora_admin"); token = ""; overview = null; reservations = []; show(false); };
+    $("refresh").onclick = async () => { try { await loadAll(); toast("Dashboard refreshed"); } catch (e) { if (e.message !== "Unauthorized") toast(e.message, "error"); } };
+
+    document.querySelectorAll(".tab").forEach((btn) => { btn.onclick = () => setView(btn.dataset.view); });
+    document.querySelectorAll("[data-goto]").forEach((btn) => { btn.onclick = () => setView(btn.dataset.goto); });
+
+    $("search").addEventListener("input", () => { filters.search = $("search").value; page = 1; renderReservations(); });
+    $("statusFilter").addEventListener("change", () => { filters.status = $("statusFilter").value; page = 1; renderReservations(); });
+    $("guestFilter").addEventListener("change", () => { filters.guestCount = $("guestFilter").value; page = 1; renderReservations(); });
+    $("periodFilter").addEventListener("change", () => { filters.period = $("periodFilter").value; page = 1; renderReservations(); });
+    $("fromDate").addEventListener("change", () => { filters.from = $("fromDate").value; page = 1; renderReservations(); });
+    $("toDate").addEventListener("change", () => { filters.to = $("toDate").value; page = 1; renderReservations(); });
+    $("clearFilters").onclick = () => {
+      Object.assign(filters, { search: "", status: "", guestCount: "", period: "all", from: "", to: "" });
+      $("search").value = ""; $("statusFilter").value = ""; $("guestFilter").value = ""; $("periodFilter").value = "all"; $("fromDate").value = ""; $("toDate").value = "";
+      page = 1; renderReservations();
+    };
+    $("prevPage").onclick = () => { page -= 1; renderReservations(); };
+    $("nextPage").onclick = () => { page += 1; renderReservations(); };
+    $("exportCsv").onclick = () => downloadExport("csv");
+    $("exportXlsx").onclick = () => downloadExport("xlsx");
+    $("addManual").onclick = () => { $("manualError").textContent = ""; openModal("manualModal"); };
+
+    document.querySelectorAll("[data-close]").forEach((btn) => { btn.onclick = () => closeModal(btn.dataset.close); });
+    document.querySelectorAll(".modal-backdrop").forEach((modal) => { modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(modal.id); }); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllModals(); });
+
+    $("rows").addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      if (action === "edit") openEdit(id);
+      else await setReservationStatus(id, { confirm: "confirmed", reject: "rejected", cancel: "cancelled" }[action]);
+    });
+
+    $("manualForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = payloadFromForm("manual");
+      const { res, data } = await request("/api/admin/reservations", { method: "POST", body: JSON.stringify(payload) });
+      if (!res.ok || !data.ok) { showFormErrors("manual", data.errors); if (data.error) $("manualError").textContent = data.error; return; }
+      closeModal("manualModal");
+      $("manualForm").reset();
+      $("manualGuests").value = 2;
+      $("manualStatus").value = "confirmed";
+      toast("Manual reservation added");
+      await loadAll();
+    });
+
+    $("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = $("editId").value;
+      const payload = payloadFromForm("edit");
+      const { res, data } = await request(`/api/reservations/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(payload) });
+      if (!res.ok || !data.ok) { showFormErrors("edit", data.errors); if (data.error) $("editError").textContent = data.error; return; }
+      closeModal("editModal");
+      toast("Reservation updated");
+      await loadAll();
+    });
+  }
+
+  fillTimeSelect($("manualTime"));
+  fillTimeSelect($("editTime"));
+  bindEvents();
+  if (token) {
+    loadAll().catch((e) => { if (e.message !== "Unauthorized") $("loginErr").textContent = e.message || "Could not load dashboard."; });
+  }
 })();
 </script>
 </body>
