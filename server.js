@@ -9,6 +9,7 @@
  *   POST   /api/admin/reservations           admin    – create a manual/offline reservation
  *   GET    /api/admin/reservations/export    admin    – export CSV or XLSX
  *   GET    /admin.html                       admin dashboard (asks for the admin token)
+ *   GET    /api/reels                        public   – Instagram reels for the homepage reel screen
  *
  * Admin routes need:  Authorization: Bearer <ADMIN_TOKEN>
  */
@@ -44,7 +45,7 @@ const SORTS = ["newest", "oldest", "date-asc", "date-desc", "guests-asc", "guest
 const MIME = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8", ".jpg": "image/jpeg", ".png": "image/png",
-  ".svg": "image/svg+xml", ".ico": "image/x-icon", ".webp": "image/webp",
+  ".svg": "image/svg+xml", ".ico": "image/x-icon", ".webp": "image/webp", ".mp4": "video/mp4", ".m4v": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm",
   ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 const PUBLIC_ROOTS = ["index.html", "admin.html", "css", "js", "assets"];
@@ -487,6 +488,118 @@ function toXlsx(rows) {
   return zipStore(files.map(([name, data]) => ({ name, data })));
 }
 
+/* ── Instagram reels ───────────────────────────────────────
+ * 1) If IG_ACCESS_TOKEN is set, reels are pulled live from the Instagram API
+ *    (graph.instagram.com) and cached for 30 minutes. The token is renewed
+ *    automatically (they expire after 60 days) and never leaves the server.
+ * 2) Otherwise, video files placed in assets/reels/ (mp4/webm) autoplay in a loop.
+ * 3) Otherwise, reel links listed in data/reels.json use Instagram's embed player
+ *    (tap-to-play: Instagram does not allow embeds to autoplay).
+ * 4) If none are available the page shows a "follow us" card instead.
+ */
+const IG_TOKEN_FILE = path.join(__dirname, "data", "ig-token.json");
+const REELS_FILE = path.join(__dirname, "data", "reels.json");
+const REELS_TTL = 30 * 60 * 1000;
+const IG_PROFILE = "https://www.instagram.com/bellora.elegantly/";
+const envIgToken = process.env.IG_ACCESS_TOKEN || "";
+let igToken = envIgToken;
+try {
+  const saved = JSON.parse(fs.readFileSync(IG_TOKEN_FILE, "utf8"));
+  if (saved.token && saved.from === envIgToken) igToken = saved.token; // a newer token in .env wins
+} catch (_) { /* nothing saved yet */ }
+
+async function refreshIgToken() {
+  if (!igToken) return;
+  try {
+    const r = await fetch(
+      `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${encodeURIComponent(igToken)}`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.access_token) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
+    igToken = j.access_token;
+    await fsp.mkdir(path.dirname(IG_TOKEN_FILE), { recursive: true });
+    await fsp.writeFile(IG_TOKEN_FILE, JSON.stringify({ token: igToken, from: envIgToken, refreshedAt: new Date().toISOString() }), { mode: 0o600 });
+    console.log("[reels] Instagram token refreshed");
+  } catch (e) {
+    console.warn("[reels] token refresh skipped:", e.message); // e.g. token is <24h old – harmless
+  }
+}
+
+async function instagramReels() {
+  const fields = "id,caption,media_type,media_product_type,media_url,thumbnail_url,permalink,timestamp";
+  const r = await fetch(
+    `https://graph.instagram.com/me/media?fields=${fields}&limit=50&access_token=${encodeURIComponent(igToken)}`,
+    { signal: AbortSignal.timeout(10000) }
+  );
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
+  return (j.data || [])
+    .filter((m) => m.media_type === "VIDEO" && m.media_product_type === "REELS" && m.media_url)
+    .slice(0, 9)
+    .map((m) => ({ id: m.id, video: m.media_url, poster: m.thumbnail_url || "", permalink: m.permalink, caption: clean(m.caption, 140), timestamp: m.timestamp }));
+}
+
+const REELS_DIR = path.join(__dirname, "assets", "reels");
+const VIDEO_RE = /\.(mp4|m4v|mov|webm)$/i;
+
+/* video files dropped into assets/reels/ – played natively, in filename order */
+async function localReels() {
+  try {
+    const files = await fsp.readdir(REELS_DIR);
+    const posters = new Map(files.filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).map((f) => [f.replace(/\.[^.]+$/, "").toLowerCase(), f]));
+    return files
+      .filter((f) => VIDEO_RE.test(f))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+      .map((f) => {
+        const poster = posters.get(f.replace(/\.[^.]+$/, "").toLowerCase());
+        return {
+          id: f,
+          video: "/assets/reels/" + encodeURIComponent(f),
+          poster: poster ? "/assets/reels/" + encodeURIComponent(poster) : "",
+          permalink: IG_PROFILE,
+        };
+      });
+  } catch { return []; }
+}
+
+/* Instagram links in data/reels.json – shown with Instagram's own player (no autoplay possible) */
+async function manualReels() {
+  try {
+    const raw = JSON.parse(await fsp.readFile(REELS_FILE, "utf8"));
+    const list = Array.isArray(raw) ? raw : raw.reels || [];
+    return list
+      .map((u) => String(u).match(/instagram\.com\/(reel|reels|p)\/([A-Za-z0-9_-]{5,20})/))
+      .filter(Boolean)
+      .slice(0, 12)
+      .map((m) => {
+        const kind = m[1] === "p" ? "p" : "reel";
+        const permalink = `https://www.instagram.com/${kind}/${m[2]}/`;
+        return { id: m[2], permalink, embedUrl: `${permalink}embed/` };
+      });
+  } catch { return []; }
+}
+
+let reelsCache = null; // only the Instagram API result is cached; local/manual lists are cheap to re-read
+async function loadReels() {
+  if (igToken) {
+    if (reelsCache && Date.now() - reelsCache.at < REELS_TTL) return reelsCache.body;
+    try {
+      const reels = await instagramReels();
+      if (reels.length) {
+        reelsCache = { at: Date.now(), body: { source: "instagram", reels } };
+        return reelsCache.body;
+      }
+    } catch (e) {
+      console.error("[reels] Instagram API error:", e.message);
+      if (reelsCache) return reelsCache.body; // keep serving the last good copy
+    }
+  }
+  const local = await localReels();
+  if (local.length) return { source: "local", reels: local };
+  return { source: "manual", reels: await manualReels() };
+}
+
 /* ── API ───────────────────────────────────────────────── */
 async function handleApi(req, res, url) {
   const ip = req.socket.remoteAddress || "unknown";
@@ -504,6 +617,11 @@ async function handleApi(req, res, url) {
     await withLock(async () => { const all = await readAll(); all.push(record); await writeAll(all); });
     console.log(`[reservation] ${record.date} ${record.time} · ${record.guests} · ${record.name} · ${record.phone}`);
     return send(res, 201, { ok: true, id: record.id });
+  }
+
+  if (url.pathname === "/api/reels" && req.method === "GET") {
+    const data = await loadReels();
+    return send(res, 200, { ok: true, profile: IG_PROFILE, ...data }, { "Cache-Control": "public, max-age=300" });
   }
 
   if (url.pathname === "/api/admin/overview" && req.method === "GET") {
@@ -597,6 +715,40 @@ async function handleApi(req, res, url) {
   return send(res, 404, { ok: false, error: "Not found" });
 }
 
+/* video needs HTTP Range support (Safari/iOS refuse to play without it) */
+async function serveVideo(req, res, full) {
+  const st = await fsp.stat(full);
+  if (!st.isFile()) throw new Error("not a file");
+  const headers = {
+    "Content-Type": MIME[path.extname(full).toLowerCase()] || "video/mp4",
+    "Accept-Ranges": "bytes",
+    "X-Content-Type-Options": "nosniff",
+    "Cache-Control": "public, max-age=86400",
+  };
+  let start = 0, end = st.size - 1, status = 200;
+  const range = req.headers.range;
+  if (range) {
+    const m = range.match(/^bytes=(\d*)-(\d*)$/);
+    if (m && (m[1] || m[2])) {
+      if (m[1] === "") start = Math.max(0, st.size - Number(m[2]));
+      else { start = Number(m[1]); if (m[2]) end = Math.min(end, Number(m[2])); }
+    }
+    if (!m || start > end || start >= st.size) {
+      res.writeHead(416, { "Content-Range": `bytes */${st.size}` });
+      return res.end();
+    }
+    status = 206;
+    headers["Content-Range"] = `bytes ${start}-${end}/${st.size}`;
+  }
+  headers["Content-Length"] = end - start + 1;
+  res.writeHead(status, headers);
+  if (req.method === "HEAD") return res.end();
+  const stream = fs.createReadStream(full, { start, end });
+  stream.on("error", () => res.destroy());
+  res.on("close", () => stream.destroy());
+  stream.pipe(res);
+}
+
 /* ── static ────────────────────────────────────────────── */
 async function serveStatic(req, res, url) {
   if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, "Method not allowed");
@@ -606,6 +758,7 @@ async function serveStatic(req, res, url) {
   const top = path.relative(__dirname, full).split(path.sep)[0];
   if (!full.startsWith(__dirname + path.sep) || !PUBLIC_ROOTS.includes(top)) return send(res, 404, "Not found");
   try {
+    if (VIDEO_RE.test(full)) return await serveVideo(req, res, full);
     const data = await fsp.readFile(full);
     const type = MIME[path.extname(full).toLowerCase()] || "application/octet-stream";
     const headers = {
@@ -637,5 +790,9 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Bellora running → http://localhost:${PORT}`);
+  if (igToken) {
+    setTimeout(refreshIgToken, 10 * 1000).unref();
+    setInterval(refreshIgToken, 7 * 24 * 3600 * 1000).unref();
+  } else console.log("ℹ  IG_ACCESS_TOKEN is not set: reels come from data/reels.json (or a follow-us card).");
   if (!ADMIN_TOKEN) console.log("⚠  ADMIN_TOKEN is not set: the admin dashboard and reservation list are disabled.");
 });
